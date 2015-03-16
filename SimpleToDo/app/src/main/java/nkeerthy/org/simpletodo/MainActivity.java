@@ -76,7 +76,7 @@ public class MainActivity extends ActionBarActivity {
         if (resultCode == RESULT_OK ) {
             String newEditText = data.getExtras().getString("newEditedData");
             Log.d("SimpleToDoApp", "*************Request code: " + requestCode + " with Data: " + newEditText);
-            items.add(requestCode, newEditText);
+            items.set(requestCode, newEditText);
             itemsAdapter.notifyDataSetChanged();
             writeItems();
         }
