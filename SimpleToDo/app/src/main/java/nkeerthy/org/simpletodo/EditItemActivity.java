@@ -24,7 +24,7 @@ public class EditItemActivity extends ActionBarActivity {
         String itemToBeEdited = getIntent().getStringExtra("itemText");
         editText = (EditText) findViewById(R.id.editText);
         editText.setText(itemToBeEdited);
-
+        editText.setSelection(editText.getText().length());
         buttonSave = (Button) findViewById(R.id.btnSave);
 
     }
