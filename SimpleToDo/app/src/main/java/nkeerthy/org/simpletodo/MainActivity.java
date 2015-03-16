@@ -1,7 +1,9 @@
 package nkeerthy.org.simpletodo;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
 
@@ -23,6 +26,7 @@ public class MainActivity extends ActionBarActivity {
     ArrayList<String> items;
     ArrayAdapter<String> itemsAdapter;
     ListView lvItems;
+    private final int REQUEST_CODE = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,17 +46,43 @@ public class MainActivity extends ActionBarActivity {
 
     private void setupListViewListener() {
         lvItems.setOnItemLongClickListener(
-                new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> adapter, View item, int pos, long id) {
-                        items.remove(pos);
-                        itemsAdapter.notifyDataSetChanged();
-                        writeItems();
-                        return true;
-                    }
+            new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> adapter, View item, int pos, long id) {
+                    items.remove(pos);
+                    itemsAdapter.notifyDataSetChanged();
+                    writeItems();
+                    return true;
                 }
+            }
+        );
+
+        lvItems.setOnItemClickListener(
+            new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Intent i = new Intent(MainActivity.this, EditItemActivity.class);
+                    i.putExtra("itemText",items.get(position));
+                    //Sending the position value as RequestCode to make it easier to get it OnAcitivityResult
+                    startActivityForResult(i, position);
+                }
+
+
+            }
         );
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data ) {
+        if (resultCode == RESULT_OK ) {
+            String newEditText = data.getExtras().getString("newEditedData");
+            Log.d("SimpleToDoApp", "*************Request code: " + requestCode + " with Data: " + newEditText);
+            items.add(requestCode, newEditText);
+            itemsAdapter.notifyDataSetChanged();
+            writeItems();
+        }
+    }
+
 
     private void readItems() {
         File fileDir = getFilesDir();
