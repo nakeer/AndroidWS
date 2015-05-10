@@ -24,20 +24,27 @@ public class MainActivity extends ActionBarActivity {
 
 
     ArrayList<String> items;
+    ArrayList<String> items_db;
     ArrayAdapter<String> itemsAdapter;
+    ArrayAdapter<String> itemsAdapter_db;
     ListView lvItems;
     private final int REQUEST_CODE = 20;
+    public static int id = 0;
+
+    DBHelper mydb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mydb = new DBHelper(this);
+
         lvItems = (ListView) findViewById(R.id.lvItems);
-        items = new ArrayList<String>();
-        readItems();
-        itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
-        lvItems.setAdapter(itemsAdapter);
+        items_db = mydb.getAllItems();
+        itemsAdapter_db = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items_db);
+
+        lvItems.setAdapter(itemsAdapter_db);
 
         setupListViewListener();
 
@@ -48,9 +55,14 @@ public class MainActivity extends ActionBarActivity {
             new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapter, View item, int pos, long id) {
-                    items.remove(pos);
-                    itemsAdapter.notifyDataSetChanged();
-                    writeItems();
+                    items_db.remove(pos);
+                    Log.d("****DEBUGGER:","Position: " + pos);
+                    itemsAdapter_db.notifyDataSetChanged();
+                    Log.d("****DEBUGGER:","BEFORE DELETION ");
+                    showDB();
+                    mydb.deleteToDoItem(pos);
+                    Log.d("****DEBUGGER:","AFTER DELETION ");
+                    showDB();
                     return true;
                 }
             }
@@ -61,7 +73,7 @@ public class MainActivity extends ActionBarActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Intent i = new Intent(MainActivity.this, EditItemActivity.class);
-                    i.putExtra("itemText",items.get(position));
+                    i.putExtra("itemText",items_db.get(position));
                     //Sending the position value as RequestCode to make it easier to get it OnAcitivityResult
                     startActivityForResult(i, position);
                 }
@@ -76,39 +88,26 @@ public class MainActivity extends ActionBarActivity {
         if (resultCode == RESULT_OK ) {
             String newEditText = data.getExtras().getString("newEditedData");
             Log.d("SimpleToDoApp", "*************Request code: " + requestCode + " with Data: " + newEditText);
-            items.set(requestCode, newEditText);
-            itemsAdapter.notifyDataSetChanged();
-            writeItems();
+            items_db.set(requestCode, newEditText);
+            itemsAdapter_db.notifyDataSetChanged();
+            mydb.updateToDoItem(requestCode, newEditText, null, null);
         }
     }
 
+    public void showDB() {
+       ArrayList<String> list = mydb.getAllItemsWithIds();
+       for( String item : list){
+           Log.d("DB: ", item);
+       }
 
-    private void readItems() {
-        File fileDir = getFilesDir();
-        File todoFile = new File(fileDir, "todo.txt");
-        try {
-            items = new ArrayList<String>(FileUtils.readLines(todoFile));
-        }catch (IOException ex){
-            items = new ArrayList<String>();
-        }
-    }
-
-    private void writeItems() {
-        File fileDir = getFilesDir();
-        File todoFile = new File(fileDir, "todo.txt");
-        try {
-            FileUtils.writeLines(todoFile, items);
-        }catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 
     public void onAddItem(View v) {
         EditText etNewItem = (EditText) findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        itemsAdapter.add(itemText);
+        itemsAdapter_db.add(itemText);
         etNewItem.setText("");
-        writeItems();
+        mydb.insertToDoItem(itemText, "default", "no");
     }
 
     @Override
