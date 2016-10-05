@@ -1,0 +1,16 @@
+.svn/
+bin/
+gen/
+obj/
+local.properties
+out
+.idea/workspace.xml
+build-properties.xml
+.DS_Store
+.idea/
+target/
+build/
+proguard_logs/
+.gradle/
+*.apk
+*.iml
