@@ -1,14 +1,21 @@
 package nakuke.com.bhisma.fragments;
 
 
+import android.app.Activity;
 import android.os.Bundle;
+import android.telecom.Call;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import nakuke.com.bhisma.R;
+import nakuke.com.bhisma.activities.LoginActivity;
 
-public class LoginFragment extends BaseFragment {
+public class LoginFragment extends BaseFragment implements View.OnClickListener {
+
+    private Button loginButton;
+    private CallBacks callBacks;
     /*
     Here we cannot just start with overloading oncreate method, as you notice there is no setContentView method in onCreate.
     *** So there is anoter method android will be invoke to get the view object that will be reference for the Fragment object
@@ -40,8 +47,46 @@ public class LoginFragment extends BaseFragment {
         we have been using this inflatore all the time but its always hidden under setContentView method of activity
          */
         View view = inflater.inflate(R.layout.fragment_login, root, false);
+
+        loginButton = (Button) view.findViewById(R.id.fragment_login_loginButton);
+        loginButton.setOnClickListener(this);
         return view;
 
     }
 
+    @Override
+    public void onClick(View view) {
+        if(view == loginButton) {
+
+            /*
+            We need to set somewhere over the chain that the user has logged in after clicking
+            the login button, user is logged in. For now when we are not actually authenticating
+            we can still click the login button without any creds. And make sure that User Boolean vallue of
+            is LoggedIn is set to true. If we dont do this after we click the Login Button -> goes to Main Activity
+            -> BaseAuthenticatedActivity and will take you back to Login Activity as user is not set to Loggedin
+             */
+
+            application.getAuth().getUser().setLoggedIn(true); // This is still a static set true, means once the app is closed we need to set it again but thats fine for now
+
+            //Notify parent activity
+            callBacks.onLoggedIn();
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        callBacks = (CallBacks) activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callBacks = null;
+    }
+
+
+    public interface CallBacks {
+        void onLoggedIn();
+    }
 }
